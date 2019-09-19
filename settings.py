@@ -11,5 +11,7 @@ class Settings:
         self.initialWindowSize = (800, 600)  # 窗口初始尺寸
         self.screenDinoRate = 1 / 15  # 屏幕长->恐龙长的倍率
 
+        self.defaultColorKey = (255, 255, 255)  # 默认设为透明的颜色
+
 
 settings = Settings()

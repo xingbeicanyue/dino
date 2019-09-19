@@ -13,9 +13,9 @@ startScene = StartScene()
 
 while True:
     for event in pygame.event.get():
-        if event.type in (pygame.QUIT, pygame.KEYDOWN):
+        if event.type == pygame.QUIT:
             sys.exit()
-        if event.type in (pygame.VIDEORESIZE,):
+        if event.type == pygame.VIDEORESIZE:
             appStates.screen = pygame.display.set_mode((event.w, event.h), flags=pygame.RESIZABLE)
 
     startScene.show()
