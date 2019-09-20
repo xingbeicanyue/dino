@@ -8,8 +8,10 @@ class Settings:
 
     def __init__(self):
         """ 初始化 """
-        self.initialWindowSize = (800, 600)  # 窗口初始尺寸
-        self.screenDinoRate = 1 / 15  # 屏幕长->恐龙长的倍率
+        self.initialWindowSize = (1280, 720)  # 窗口初始尺寸
+
+        self.dinosaurLeft = 100  # 恐龙左侧初始像素
+        self.dinosaurTop = 350  # 恐龙上侧初始像素
 
         self.defaultColorKey = (255, 255, 255)  # 默认设为透明的颜色
 

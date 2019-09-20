@@ -14,6 +14,7 @@ class StartScene:
         """ 初始化 """
         self._lastScreenWidth = -1
         self._coverImage = None
+        self.__coverImage2 = None
 
     def __loadCoverImage(self):
         """ 载入封面图并根据屏幕窗口调整大小 """
@@ -25,7 +26,7 @@ class StartScene:
             self._coverImage2.set_colorkey(settings.defaultColorKey)
 
             self._lastScreenWidth = appStates.screen.get_width()
-            newImageWidth = round(self._lastScreenWidth * settings.screenDinoRate)
+            newImageWidth = round(self._lastScreenWidth / 15)
             newImageHeight = round(self._coverImage.get_height() * newImageWidth / self._coverImage.get_width())
             self._coverImage = pygame.transform.scale(self._coverImage, (newImageWidth, newImageHeight))
             self._coverImage2 = pygame.transform.scale(self._coverImage2, (newImageWidth, newImageHeight))
