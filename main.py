@@ -4,6 +4,7 @@ from settings import settings
 from state import appStates
 from startScene import StartScene
 from dinosaur import Dinosaur
+from terrian import Terrian
 
 
 pygame.init()
@@ -12,6 +13,7 @@ pygame.display.set_caption('dino')
 appStates.screen = pygame.display.set_mode(settings.initialWindowSize)
 startScene = StartScene()
 dinosaur = Dinosaur()
+terrian = Terrian()
 
 clock = pygame.time.Clock()
 while True:
@@ -42,7 +44,10 @@ while True:
     if appStates.gameState == 0:
         startScene.show()
     elif appStates.gameState == 1:
+        terrian.update()
         dinosaur.updateState()
+        appStates.screen.fill(rect=appStates.screen.get_rect(), color=(255, 255, 255))
+        terrian.draw(appStates.screen)
         dinosaur.show()
     pygame.display.update()
     clock.tick(settings.maxFPS)

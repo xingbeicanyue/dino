@@ -37,7 +37,6 @@ class Dinosaur(pygame.sprite.Sprite):
         self._addHeight = 0  # 高度
         self._jumpingFrame = 0  # 跳跃帧数（用于计算高度位移）
         self._downPressed, self._upPressed = False, False  # 俯冲|跳跃按键是否按下
-        self._lastImgRect = None  # 上一帧图片范围
         self.__loadImage()
 
     def __inJumpingStates(self) -> bool:
@@ -95,16 +94,12 @@ class Dinosaur(pygame.sprite.Sprite):
 
     def show(self):
         """ 绘制 """
-        if self._lastImgRect:
-            appStates.screen.fill(rect=self._lastImgRect, color=(255, 255, 255))
-
-        self._lastImgRect = self.getShowRect()
         if self._state == DinosaurState.run:
-            appStates.screen.blit(self._runningImgs[pygame.time.get_ticks() // 100 % 2], self._lastImgRect.topleft)
+            appStates.screen.blit(self._runningImgs[pygame.time.get_ticks() // 100 % 2], self.getShowRect().topleft)
         elif self._state == DinosaurState.dive:
-            appStates.screen.blit(self._divingImgs[pygame.time.get_ticks() // 100 % 2], self._lastImgRect.topleft)
+            appStates.screen.blit(self._divingImgs[pygame.time.get_ticks() // 100 % 2], self.getShowRect().topleft)
         elif self.__inJumpingStates():
-            appStates.screen.blit(self._jumpingImg, self._lastImgRect.topleft)
+            appStates.screen.blit(self._jumpingImg, self.getShowRect().topleft)
 
     def getShowRect(self) -> pygame.Rect:
         """ 获取图片显示矩形 """
