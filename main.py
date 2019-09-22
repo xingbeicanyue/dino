@@ -23,6 +23,8 @@ while True:
                 if appStates.gameState == 0:
                     appStates.gameState = 1
                     appStates.screen.fill((255, 255, 255))
+                elif appStates.gameState == 1:
+                    dinosaur.startUp()
             elif event.key == pygame.K_DOWN:
                 if appStates.gameState == 1:
                     dinosaur.startDown()
@@ -33,7 +35,7 @@ while True:
             if event.key == pygame.K_DOWN:
                 if appStates.gameState == 1:
                     dinosaur.endDown()
-            elif event.key == pygame.K_UP:
+            elif event.key in (pygame.K_SPACE, pygame.K_UP):
                 if appStates.gameState == 1:
                     dinosaur.endUp()
 
