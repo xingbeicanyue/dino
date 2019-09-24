@@ -1,15 +1,103 @@
 """
-主角恐龙
+游戏控制及游戏对象
 """
 
-from enum import Enum
+import enum
+import random
+import sys
 import pygame
 import baseFunc
-from settings import settings
 from state import appStates
+from settings import settings
 
 
-class DinosaurState(Enum):
+class Game:
+    """ 游戏控制 """
+
+    def __init__(self):
+        """ 初始化 """
+        self._startScene = StartScene()
+        self._dinosaur = Dinosaur()
+        self._terrian = Terrian()
+        self._cloudGroup = pygame.sprite.RenderPlain()
+        self._cloudProbability = settings.cloudMaxProbability  # 云出现的概率
+
+    def _updateClouds(self):
+        """ 更新云群的位置 """
+        self._cloudGroup.update()
+        if random.randint(0, settings.cloudMaxProbability) < self._cloudProbability:
+            self._cloudGroup.add(Cloud((appStates.screen.get_width(),
+                                        random.randint(settings.cloudMaxTop, settings.cloudMinTop))))
+            # 一段时间内不再出现云
+            self._cloudProbability = -settings.cloudMinInterval / settings.cloudSpeed * settings.cloudProbabilitySpeed
+        else:
+            self._cloudProbability += settings.cloudProbabilitySpeed
+
+    def handleEvents(self):
+        """ 处理事件 """
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if appStates.gameState == 0:
+                        appStates.gameState = 1
+                        appStates.screen.fill((255, 255, 255))
+                    elif appStates.gameState == 1:
+                        self._dinosaur.startUp()
+                elif event.key == pygame.K_DOWN:
+                    if appStates.gameState == 1:
+                        self._dinosaur.startDown()
+                elif event.key == pygame.K_UP:
+                    if appStates.gameState == 1:
+                        self._dinosaur.startUp()
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_DOWN:
+                    if appStates.gameState == 1:
+                        self._dinosaur.endDown()
+                elif event.key in (pygame.K_SPACE, pygame.K_UP):
+                    if appStates.gameState == 1:
+                        self._dinosaur.endUp()
+
+    def draw(self):
+        """ 绘制 """
+        if appStates.gameState == 0:
+            self._startScene.show()
+        elif appStates.gameState == 1:
+            self._terrian.update()
+            self._updateClouds()
+            self._dinosaur.updateState()
+
+            appStates.screen.fill(rect=appStates.screen.get_rect(), color=(255, 255, 255))
+            self._terrian.draw(appStates.screen)
+            self._cloudGroup.draw(appStates.screen)
+            self._dinosaur.show()
+        pygame.display.update()
+
+
+class StartScene:
+    """ 开始界面 """
+
+    def __init__(self):
+        """ 初始化 """
+        # 封面图由两张图组成，尺寸相同，coverImage2为闭眼状态
+        self._coverImage = pygame.image.load('src/coverImage.png').convert()
+        self._coverImage.set_colorkey(settings.defaultColorKey)
+        self._coverImage2 = pygame.image.load('src/coverImage2.png').convert()
+        self._coverImage2.set_colorkey(settings.defaultColorKey)
+
+    def show(self):
+        """ 绘制 """
+        appStates.screen.fill((255, 255, 255))
+        left = round((appStates.screen.get_width() - self._coverImage.get_width()) / 2)
+        top = round((appStates.screen.get_height() - self._coverImage.get_height()) / 2)
+        if 0 <= pygame.time.get_ticks() % 5000 <= 100:
+            appStates.screen.blit(self._coverImage2, (left, top))
+        else:
+            appStates.screen.blit(self._coverImage, (left, top))
+
+
+class DinosaurState(enum.Enum):
     """ 恐龙状态 """
     run = 0  # 跑步
     dive = 1  # 俯冲
@@ -142,3 +230,49 @@ class Dinosaur(pygame.sprite.Sprite):
         self._upPressed = False
         if self._state == DinosaurState.startJump:
             self._state = DinosaurState.littleJump if self._jumpingFrame < self.jumpCommandFrame else DinosaurState.jump
+
+
+class Terrian(pygame.sprite.Sprite):
+    """ 地形 """
+
+    def __init__(self):
+        """ 初始化 """
+        super().__init__()
+        self.__loadImage()
+        self.rect = pygame.Rect(settings.terrianTopLeft, self.image.get_size())
+        self.curSpeed = settings.terrianSpeed
+
+    def __loadImage(self):
+        """ 载入图片并根据屏幕窗口调整大小 """
+        self.image = pygame.image.load('src/terrian.png').convert()
+        newImageWidth = round(appStates.screen.get_width() * 2)
+        newImageHeight = round(self.image.get_height() * newImageWidth / self.image.get_width())
+        self.image = pygame.transform.scale(self.image, (newImageWidth, newImageHeight))
+
+    def update(self):
+        """ 更新 """
+        self.rect = self.rect.move(-self.curSpeed, 0)
+        if self.rect.right < appStates.screen.get_width():
+            self.rect = self.rect.move(appStates.screen.get_width(), 0)
+
+    def draw(self, screen):
+        """ 绘制 """
+        screen.blit(self.image, self.rect)
+
+
+class Cloud(pygame.sprite.Sprite):
+    """ 云 """
+
+    def __init__(self, topLeft):
+        """ 初始化 """
+        super().__init__()
+        self.image = pygame.image.load('src/cloud.png').convert()
+        self.image.set_colorkey(settings.defaultColorKey)
+        newImageWidth = round(appStates.screen.get_width() * settings.screenCloudRate)
+        newImageHeight = round(self.image.get_height() * newImageWidth / self.image.get_width())
+        self.image = pygame.transform.scale(self.image, (newImageWidth, newImageHeight))
+        self.rect = pygame.Rect(topLeft, self.image.get_size())
+
+    def update(self):
+        """ 更新 """
+        self.rect = self.rect.move(-settings.cloudSpeed, 0)

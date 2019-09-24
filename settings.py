@@ -18,5 +18,13 @@ class Settings:
         self.terrianTopLeft = (0, 405)  # 地形左上角点
         self.terrianSpeed = 10  # 地形初始移动速度
 
+        self.screenCloudRate = 0.075  # 屏幕长->云宽倍率
+        self.cloudSpeed = 3  # 云移动速度
+        self.cloudProbabilitySpeed = 1  # 出现云概率增加速度
+        self.cloudMaxProbability = 10000  # 必然出现云的几率数值
+        self.cloudMinInterval = 150  # 云最小x坐标差
+        self.cloudMinTop = 300  # 云顶部最低坐标
+        self.cloudMaxTop = 180  # 云顶部最高坐标
+
 
 settings = Settings()
