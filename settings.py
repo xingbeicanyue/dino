@@ -15,10 +15,14 @@ class Settings:
         self.dinosaurLeft = 100  # 恐龙左侧初始像素
         self.dinosaurBottom = 430  # 恐龙上侧初始像素
 
-        self.terrianTopLeft = (0, 405)  # 地形左上角点
-        self.terrianSpeed = 10  # 地形初始移动速度
+        self.screenCactusRate = 0.04  # 屏幕宽->大仙人掌宽倍率
+        self.smallCactusRate = 0.75  # 小仙人掌相对于大仙人掌的比例
+        self.cactusBottom = 432  # 仙人掌下侧像素
 
-        self.screenCloudRate = 0.075  # 屏幕长->云宽倍率
+        self.terrianTopLeft = (0, 405)  # 地形左上角点
+        self.terrianSpeed = 720 / self.maxFPS  # 地形初始移动速度
+
+        self.screenCloudRate = 0.075  # 屏幕宽->云宽倍率
         self.cloudSpeed = 3  # 云移动速度
         self.cloudProbabilitySpeed = 1  # 出现云概率增加速度
         self.cloudMaxProbability = 10000  # 必然出现云的几率数值

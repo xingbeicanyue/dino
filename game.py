@@ -5,6 +5,7 @@
 import enum
 import random
 import sys
+import numpy
 import pygame
 import baseFunc
 from state import appStates
@@ -18,13 +19,32 @@ class Game:
         """ 初始化 """
         self._startScene = StartScene()
         self._dinosaur = Dinosaur()
+        self._cactusGroup = pygame.sprite.RenderPlain()
         self._terrian = Terrian()
         self._cloudGroup = pygame.sprite.RenderPlain()
         self._cloudProbability = settings.cloudMaxProbability  # 云出现的概率
+        appStates.curTerrianSpeed = settings.terrianSpeed
+
+        self.cactusPro = 50
+
+    def _updateEnemies(self):
+        """ 更新敌人 """
+        self._cactusGroup.update()
+        for cactus in self._cactusGroup.copy():
+            if cactus.rect.right < 0:
+                self._cactusGroup.remove(cactus)
+        if self.cactusPro >= 50:
+            self._cactusGroup.add(Cactus())
+            self.cactusPro = 0
+        else:
+            self.cactusPro += 1
 
     def _updateClouds(self):
         """ 更新云群的位置 """
         self._cloudGroup.update()
+        for cloud in self._cloudGroup.copy():
+            if cloud.rect.right < 0:
+                self._cloudGroup.remove(cloud)
         if random.randint(0, settings.cloudMaxProbability) < self._cloudProbability:
             self._cloudGroup.add(Cloud((appStates.screen.get_width(),
                                         random.randint(settings.cloudMaxTop, settings.cloudMinTop))))
@@ -65,12 +85,14 @@ class Game:
             self._startScene.show()
         elif appStates.gameState == 1:
             self._terrian.update()
+            self._updateEnemies()
             self._updateClouds()
             self._dinosaur.updateState()
 
             appStates.screen.fill(rect=appStates.screen.get_rect(), color=(255, 255, 255))
             self._terrian.draw(appStates.screen)
             self._cloudGroup.draw(appStates.screen)
+            self._cactusGroup.draw(appStates.screen)
             self._dinosaur.show()
         pygame.display.update()
 
@@ -81,20 +103,19 @@ class StartScene:
     def __init__(self):
         """ 初始化 """
         # 封面图由两张图组成，尺寸相同，coverImage2为闭眼状态
-        self._coverImage = pygame.image.load('src/coverImage.png').convert()
-        self._coverImage.set_colorkey(settings.defaultColorKey)
-        self._coverImage2 = pygame.image.load('src/coverImage2.png').convert()
-        self._coverImage2.set_colorkey(settings.defaultColorKey)
+        coverImage = pygame.image.load('src/coverImage.png').convert()
+        coverImage.set_colorkey(settings.defaultColorKey)
+        self._coverImages = baseFunc.divideSruface(coverImage, 1, 2)
 
     def show(self):
         """ 绘制 """
         appStates.screen.fill((255, 255, 255))
-        left = round((appStates.screen.get_width() - self._coverImage.get_width()) / 2)
-        top = round((appStates.screen.get_height() - self._coverImage.get_height()) / 2)
+        left = round((appStates.screen.get_width() - self._coverImages[0].get_width()) / 2)
+        top = round((appStates.screen.get_height() - self._coverImages[0].get_height()) / 2)
         if 0 <= pygame.time.get_ticks() % 5000 <= 100:
-            appStates.screen.blit(self._coverImage2, (left, top))
+            appStates.screen.blit(self._coverImages[1], (left, top))
         else:
-            appStates.screen.blit(self._coverImage, (left, top))
+            appStates.screen.blit(self._coverImages[0], (left, top))
 
 
 class DinosaurState(enum.Enum):
@@ -111,8 +132,8 @@ class DinosaurState(enum.Enum):
 class Dinosaur(pygame.sprite.Sprite):
     """ 主角恐龙 """
 
-    screenDinoRate = 1 / 15  # 屏幕长->恐龙长的倍率（非俯冲状态）
-    screenDivingDinoRate = 11 / 120  # 屏幕长->恐龙长的倍率（俯冲状态）
+    screenDinoRate = 1 / 15  # 屏幕宽->恐龙宽的倍率（非俯冲状态）
+    screenDivingDinoRate = 11 / 120  # 屏幕宽->恐龙宽的倍率（俯冲状态）
     jumpFrame = 30  # 大跳持续帧数
     littleJumpFrame = 20  # 小跳持续帧数
     fallSpeed = 25  # 加速降落速度
@@ -232,46 +253,100 @@ class Dinosaur(pygame.sprite.Sprite):
             self._state = DinosaurState.littleJump if self._jumpingFrame < self.jumpCommandFrame else DinosaurState.jump
 
 
-class Terrian(pygame.sprite.Sprite):
-    """ 地形 """
+class Cactus(pygame.sprite.Sprite):
+    """ 仙人掌 """
+
+    images = None
 
     def __init__(self):
         """ 初始化 """
         super().__init__()
-        self.__loadImage()
-        self.rect = pygame.Rect(settings.terrianTopLeft, self.image.get_size())
-        self.curSpeed = settings.terrianSpeed
+        Cactus.__loadImage()
+        self.isLarge = random.randint(0, 1) == 1  # 是否大仙人掌
+        self.num = random.randint(1, 4)  # 仙人掌数
+        self.__initCactus()
+        self.rect = pygame.Rect((appStates.screen.get_width(), settings.cactusBottom - self.image.get_height()),
+                                self.image.get_size())
 
-    def __loadImage(self):
+    @staticmethod
+    def __loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
-        self.image = pygame.image.load('src/terrian.png').convert()
-        newImageWidth = round(appStates.screen.get_width() * 2)
-        newImageHeight = round(self.image.get_height() * newImageWidth / self.image.get_width())
-        self.image = pygame.transform.scale(self.image, (newImageWidth, newImageHeight))
+        if not Cactus.images:
+            image = pygame.image.load('src/cactus.png').convert()
+            Cactus.images = baseFunc.divideSruface(image, 1, 3)
+            for i in range(len(Cactus.images)):
+                newImageWidth = round(appStates.screen.get_width() * settings.screenCactusRate)
+                newImageHeight = round(Cactus.images[i].get_height() * newImageWidth / Cactus.images[i].get_width())
+                Cactus.images[i] = pygame.transform.scale(Cactus.images[i], (newImageWidth, newImageHeight))
+
+    def __initCactus(self):
+        """ 初始化自身仙人掌组信息 """
+        imageArray = numpy.zeros((Cactus.images[0].get_width() * self.num, Cactus.images[0].get_height(), 3))
+        for i in range(self.num):
+            imageArray[Cactus.images[0].get_width()*i:Cactus.images[0].get_width()*(i+1), :] =\
+                pygame.surfarray.array3d(Cactus.images[random.randint(0, 2)])
+        self.image = pygame.surfarray.make_surface(imageArray)
+        self.image.set_colorkey(settings.defaultColorKey)
+        if not self.isLarge:
+            self.image = pygame.transform.scale(self.image, (round(self.image.get_width() * settings.smallCactusRate),
+                                                             round(self.image.get_height() * settings.smallCactusRate)))
 
     def update(self):
         """ 更新 """
-        self.rect = self.rect.move(-self.curSpeed, 0)
+        self.rect = self.rect.move(-appStates.curTerrianSpeed, 0)
+
+
+class Terrian(pygame.sprite.Sprite):
+    """ 地形 """
+
+    image = None
+
+    def __init__(self):
+        """ 初始化 """
+        super().__init__()
+        Terrian.__loadImage()
+        self.rect = pygame.Rect(settings.terrianTopLeft, Terrian.image.get_size())
+
+    @staticmethod
+    def __loadImage():
+        """ 载入图片并根据屏幕窗口调整大小 """
+        if not Terrian.image:
+            Terrian.image = pygame.image.load('src/terrian.png').convert()
+            newImageWidth = round(appStates.screen.get_width() * 2)
+            newImageHeight = round(Terrian.image.get_height() * newImageWidth / Terrian.image.get_width())
+            Terrian.image = pygame.transform.scale(Terrian.image, (newImageWidth, newImageHeight))
+
+    def update(self):
+        """ 更新 """
+        self.rect = self.rect.move(-appStates.curTerrianSpeed, 0)
         if self.rect.right < appStates.screen.get_width():
             self.rect = self.rect.move(appStates.screen.get_width(), 0)
 
     def draw(self, screen):
         """ 绘制 """
-        screen.blit(self.image, self.rect)
+        screen.blit(Terrian.image, self.rect)
 
 
 class Cloud(pygame.sprite.Sprite):
     """ 云 """
 
+    image = None
+
     def __init__(self, topLeft):
         """ 初始化 """
         super().__init__()
-        self.image = pygame.image.load('src/cloud.png').convert()
-        self.image.set_colorkey(settings.defaultColorKey)
-        newImageWidth = round(appStates.screen.get_width() * settings.screenCloudRate)
-        newImageHeight = round(self.image.get_height() * newImageWidth / self.image.get_width())
-        self.image = pygame.transform.scale(self.image, (newImageWidth, newImageHeight))
+        Cloud.__loadImage()
         self.rect = pygame.Rect(topLeft, self.image.get_size())
+
+    @staticmethod
+    def __loadImage():
+        """ 载入图片并根据屏幕窗口调整大小 """
+        if not Cloud.image:
+            Cloud.image = pygame.image.load('src/cloud.png').convert()
+            Cloud.image.set_colorkey(settings.defaultColorKey)
+            newImageWidth = round(appStates.screen.get_width() * settings.screenCloudRate)
+            newImageHeight = round(Cloud.image.get_height() * newImageWidth / Cloud.image.get_width())
+            Cloud.image = pygame.transform.scale(Cloud.image, (newImageWidth, newImageHeight))
 
     def update(self):
         """ 更新 """
