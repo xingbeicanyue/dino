@@ -20,12 +20,12 @@ class Game:
         self._startScene = StartScene()
         self._dinosaur = Dinosaur()
         self._cactusGroup = pygame.sprite.RenderPlain()
+        self._birdGroup = pygame.sprite.RenderPlain()
         self._terrian = Terrian()
         self._cloudGroup = pygame.sprite.RenderPlain()
         self._cloudProbability = settings.cloudMaxProbability  # 云出现的概率
+        self._enemyProbalility = 0  # 敌人出现的概率
         appStates.curTerrianSpeed = settings.terrianSpeed
-
-        self.cactusPro = 50
 
     def _updateEnemies(self):
         """ 更新敌人 """
@@ -33,11 +33,20 @@ class Game:
         for cactus in self._cactusGroup.copy():
             if cactus.rect.right < 0:
                 self._cactusGroup.remove(cactus)
-        if self.cactusPro >= 50:
-            self._cactusGroup.add(Cactus())
-            self.cactusPro = 0
+        self._birdGroup.update()
+        for bird in self._birdGroup.copy():
+            if bird.rect.right < 0:
+                self._birdGroup.remove(bird)
+
+        if random.randint(0, settings.enemyMaxProbability) < self._enemyProbalility or\
+                self._enemyProbalility >= settings.enemyMaxProbability / 2:
+            if random.randint(0, 2) <= 1:
+                self._cactusGroup.add(Cactus())
+            else:
+                self._birdGroup.add(Bird())
+            self._enemyProbalility = -settings.enemyMinFrameInterval
         else:
-            self.cactusPro += 1
+            self._enemyProbalility += 1
 
     def _updateClouds(self):
         """ 更新云群的位置 """
@@ -52,6 +61,12 @@ class Game:
             self._cloudProbability = -settings.cloudMinInterval / settings.cloudSpeed * settings.cloudProbabilitySpeed
         else:
             self._cloudProbability += settings.cloudProbabilitySpeed
+
+    def _detectCollision(self) -> bool:
+        """ 检测碰撞 """
+        if pygame.sprite.spritecollide(self._dinosaur, self._cactusGroup, False, pygame.sprite.collide_mask):
+            return True
+        return False
 
     def handleEvents(self):
         """ 处理事件 """
@@ -84,16 +99,22 @@ class Game:
         if appStates.gameState == 0:
             self._startScene.show()
         elif appStates.gameState == 1:
+            # 更新状态
             self._terrian.update()
             self._updateEnemies()
             self._updateClouds()
-            self._dinosaur.updateState()
-
+            self._dinosaur.update()
+            # 显示
             appStates.screen.fill(rect=appStates.screen.get_rect(), color=(255, 255, 255))
             self._terrian.draw(appStates.screen)
             self._cloudGroup.draw(appStates.screen)
             self._cactusGroup.draw(appStates.screen)
+            for bird in self._birdGroup:
+                bird.draw(appStates.screen)
             self._dinosaur.show()
+            # 碰撞检测
+            if self._detectCollision():
+                appStates.gameState = 2
         pygame.display.update()
 
 
@@ -147,6 +168,8 @@ class Dinosaur(pygame.sprite.Sprite):
         self._jumpingFrame = 0  # 跳跃帧数（用于计算高度位移）
         self._downPressed, self._upPressed = False, False  # 俯冲|跳跃按键是否按下
         self.__loadImage()
+        self.image = self._runningImgs[0]
+        self.rect = self.getShowRect()
 
     def __inJumpingStates(self) -> bool:
         """ 判断是否处于跳跃状态（跳跃起步、大跳、小跳、加速降落） """
@@ -180,35 +203,47 @@ class Dinosaur(pygame.sprite.Sprite):
         newImageHeight = round(self._jumpingImg.get_height() * newImageWidth / self._jumpingImg.get_width())
         self._jumpingImg = pygame.transform.scale(self._jumpingImg, (newImageWidth, newImageHeight))
 
-    def updateState(self):
-        """ 更新位置及状态 """
-        if not self.__inJumpingStates():
-            return
-        if self._state in (DinosaurState.startJump, DinosaurState.jump):
-            self._addHeight += (self.jumpFrame / 2 - self._jumpingFrame) * 1.7
-        elif self._state == DinosaurState.littleJump:
-            self._addHeight += (self.littleJumpFrame / 2 - self._jumpingFrame) * 1.7
-        elif self._state == DinosaurState.fall:
-            self._addHeight -= self.fallSpeed
-        self._jumpingFrame += 1
-        if self._addHeight <= 0:
-            self._jumpingFrame = 0
-            self._addHeight = 0
-            if self._downPressed:
-                self._state = DinosaurState.dive
-            elif self._upPressed:
-                self._state = DinosaurState.startJump
-            else:
-                self._state = DinosaurState.run
+    def update(self):
+        """ 更新位置、状态及图片 """
+        if self.__inJumpingStates():
+            if self._state in (DinosaurState.startJump, DinosaurState.jump):
+                self._addHeight += (self.jumpFrame / 2 - self._jumpingFrame) * 1.7
+            elif self._state == DinosaurState.littleJump:
+                self._addHeight += (self.littleJumpFrame / 2 - self._jumpingFrame) * 1.7
+            elif self._state == DinosaurState.fall:
+                self._addHeight -= self.fallSpeed
+            self._jumpingFrame += 1
+            if self._addHeight <= 0:
+                self._jumpingFrame = 0
+                self._addHeight = 0
+                if self._downPressed:
+                    self._state = DinosaurState.dive
+                elif self._upPressed:
+                    self._state = DinosaurState.startJump
+                else:
+                    self._state = DinosaurState.run
+        self.image = self.getShowImage()
+        self.rect = self.getShowRect()
 
     def show(self):
         """ 绘制 """
         if self._state == DinosaurState.run:
-            appStates.screen.blit(self._runningImgs[pygame.time.get_ticks() // 100 % 2], self.getShowRect().topleft)
+            appStates.screen.blit(self.getShowImage(), self.getShowRect().topleft)
         elif self._state == DinosaurState.dive:
-            appStates.screen.blit(self._divingImgs[pygame.time.get_ticks() // 100 % 2], self.getShowRect().topleft)
+            appStates.screen.blit(self.getShowImage(), self.getShowRect().topleft)
         elif self.__inJumpingStates():
-            appStates.screen.blit(self._jumpingImg, self.getShowRect().topleft)
+            appStates.screen.blit(self.getShowImage(), self.getShowRect().topleft)
+
+    def getShowImage(self) -> pygame.Surface:
+        if self._state == DinosaurState.run:
+            return self._runningImgs[pygame.time.get_ticks() // 100 % 2]
+        elif self._state == DinosaurState.dive:
+            return self._divingImgs[pygame.time.get_ticks() // 100 % 2]
+        elif self.__inJumpingStates():
+            return self._jumpingImg
+        elif self._state == DinosaurState.die:
+            return None
+        raise ValueError
 
     def getShowRect(self) -> pygame.Rect:
         """ 获取图片显示矩形 """
@@ -256,7 +291,7 @@ class Dinosaur(pygame.sprite.Sprite):
 class Cactus(pygame.sprite.Sprite):
     """ 仙人掌 """
 
-    images = None
+    surfArrays = None
 
     def __init__(self):
         """ 初始化 """
@@ -271,20 +306,23 @@ class Cactus(pygame.sprite.Sprite):
     @staticmethod
     def __loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
-        if not Cactus.images:
+        if not Cactus.surfArrays:
             image = pygame.image.load('src/cactus.png').convert()
-            Cactus.images = baseFunc.divideSruface(image, 1, 3)
-            for i in range(len(Cactus.images)):
+            images = baseFunc.divideSruface(image, 1, 3)
+            for i in range(len(images)):
                 newImageWidth = round(appStates.screen.get_width() * settings.screenCactusRate)
-                newImageHeight = round(Cactus.images[i].get_height() * newImageWidth / Cactus.images[i].get_width())
-                Cactus.images[i] = pygame.transform.scale(Cactus.images[i], (newImageWidth, newImageHeight))
+                newImageHeight = round(images[i].get_height() * newImageWidth / images[i].get_width())
+                images[i] = pygame.transform.scale(images[i], (newImageWidth, newImageHeight))
+            Cactus.surfArrays = []
+            for image in images:
+                Cactus.surfArrays.append(pygame.surfarray.array3d(image))
 
     def __initCactus(self):
         """ 初始化自身仙人掌组信息 """
-        imageArray = numpy.zeros((Cactus.images[0].get_width() * self.num, Cactus.images[0].get_height(), 3))
+        imageArray = numpy.zeros((len(Cactus.surfArrays[0]) * self.num, len(Cactus.surfArrays[0][0]), 3))
         for i in range(self.num):
-            imageArray[Cactus.images[0].get_width()*i:Cactus.images[0].get_width()*(i+1), :] =\
-                pygame.surfarray.array3d(Cactus.images[random.randint(0, 2)])
+            imageArray[len(Cactus.surfArrays[0])*i:len(Cactus.surfArrays[0])*(i+1), :] =\
+                Cactus.surfArrays[random.randint(0, 2)]
         self.image = pygame.surfarray.make_surface(imageArray)
         self.image.set_colorkey(settings.defaultColorKey)
         if not self.isLarge:
@@ -294,6 +332,38 @@ class Cactus(pygame.sprite.Sprite):
     def update(self):
         """ 更新 """
         self.rect = self.rect.move(-appStates.curTerrianSpeed, 0)
+
+
+class Bird(pygame.sprite.Sprite):
+    """ 鸟 """
+
+    images = None
+
+    def __init__(self):
+        """ 初始化 """
+        super().__init__()
+        Bird.__loadImage()
+        self.rect = pygame.Rect((appStates.screen.get_width(), settings.birdTops[random.randint(0, 2)]),
+                                Bird.images[0].get_size())
+
+    @staticmethod
+    def __loadImage():
+        """ 载入图片并根据屏幕窗口调整大小 """
+        if not Bird.images:
+            image = pygame.image.load('src/bird.png').convert()
+            image.set_colorkey(settings.defaultColorKey)
+            Bird.images = baseFunc.divideSruface(image, 1, 2)
+            for i in range(len(Bird.images)):
+                newImageWidth = round(appStates.screen.get_width() * settings.screenBirdRate)
+                newImageHeight = round(Bird.images[i].get_height() * newImageWidth / Bird.images[i].get_width())
+                Bird.images[i] = pygame.transform.scale(Bird.images[i], (newImageWidth, newImageHeight))
+
+    def update(self):
+        self.rect = self.rect.move(-appStates.curTerrianSpeed, 0)
+
+    def draw(self, surface):
+        """ 绘制 """
+        surface.blit(Bird.images[pygame.time.get_ticks() // 200 % 2], self.rect.topleft)
 
 
 class Terrian(pygame.sprite.Sprite):

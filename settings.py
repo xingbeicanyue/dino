@@ -12,12 +12,19 @@ class Settings:
         self.maxFPS = 60  # 最大帧数
         self.defaultColorKey = (255, 255, 255)  # 默认设为透明的颜色
 
-        self.dinosaurLeft = 100  # 恐龙左侧初始像素
-        self.dinosaurBottom = 430  # 恐龙上侧初始像素
+        self.dinosaurLeft = 100  # 恐龙左侧初始坐标
+        self.dinosaurBottom = 430  # 恐龙上侧初始坐标
+        self.dinosaurCollisionOffsetRate = 50 / 1280  # 屏幕宽->恐龙显示至判定区域缩放值的比例
 
         self.screenCactusRate = 0.04  # 屏幕宽->大仙人掌宽倍率
         self.smallCactusRate = 0.75  # 小仙人掌相对于大仙人掌的比例
-        self.cactusBottom = 432  # 仙人掌下侧像素
+        self.cactusBottom = 432  # 仙人掌下侧坐标
+
+        self.screenBirdRate = 0.07  # 屏幕宽->鸟宽倍率
+        self.birdTops = (250, 300, 350)  # 鸟可能的上侧坐标
+
+        self.enemyMaxProbability = 400  # 必然出现敌人的几率数值
+        self.enemyMinFrameInterval = 25  # 敌人最小帧数间隔
 
         self.terrianTopLeft = (0, 405)  # 地形左上角点
         self.terrianSpeed = 720 / self.maxFPS  # 地形初始移动速度
@@ -27,8 +34,8 @@ class Settings:
         self.cloudProbabilitySpeed = 1  # 出现云概率增加速度
         self.cloudMaxProbability = 10000  # 必然出现云的几率数值
         self.cloudMinInterval = 150  # 云最小x坐标差
-        self.cloudMinTop = 300  # 云顶部最低坐标
-        self.cloudMaxTop = 180  # 云顶部最高坐标
+        self.cloudMinTop = 300  # 云上侧最低坐标
+        self.cloudMaxTop = 180  # 云上侧最高坐标
 
 
 settings = Settings()
