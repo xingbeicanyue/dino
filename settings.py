@@ -1,10 +1,10 @@
 """
-常数及用户设置
+常数及用户设置参数
 """
 
 
 class Settings:
-    """ 设置 """
+    """ 设置参数 """
 
     def __init__(self):
         """ 初始化 """
@@ -14,14 +14,13 @@ class Settings:
 
         self.dinosaurLeft = 100  # 恐龙左侧初始坐标
         self.dinosaurBottom = 430  # 恐龙上侧初始坐标
-        self.dinosaurCollisionOffsetRate = 50 / 1280  # 屏幕宽->恐龙显示至判定区域缩放值的比例
 
         self.screenCactusRate = 0.04  # 屏幕宽->大仙人掌宽倍率
         self.smallCactusRate = 0.75  # 小仙人掌相对于大仙人掌的比例
         self.cactusBottom = 432  # 仙人掌下侧坐标
 
         self.screenBirdRate = 0.07  # 屏幕宽->鸟宽倍率
-        self.birdTops = (250, 300, 350)  # 鸟可能的上侧坐标
+        self.birdTops = (255, 295, 345)  # 鸟可能的上侧坐标
 
         self.enemyMaxProbability = 400  # 必然出现敌人的几率数值
         self.enemyMinFrameInterval = 25  # 敌人最小帧数间隔
