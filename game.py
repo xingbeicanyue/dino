@@ -9,6 +9,7 @@ import numpy
 import pygame
 import baseFunc
 from settings import Color, Settings
+from score import Score
 
 
 # region Game
@@ -21,6 +22,7 @@ class Game:
         self._screen = screen  # 屏幕
         self._gameState = 0  # 0:开始画面; 1:游戏中; 2:游戏结束
         self._frameCount = 0  # 每个游戏状态的帧数计数
+        self._score = Score()  # 分数系统
         self._startScene = StartScene()
         self._dinosaur = Dinosaur(self)
         self._cactusGroup = pygame.sprite.RenderPlain()
@@ -87,7 +89,7 @@ class Game:
                    (Settings.initialWindowSize[1] - self._restartImage.get_height()) / 2)
         self._screen.blit(self._restartImage, topLeft)
 
-        gameoverImage = pygame.font.SysFont(None, 48).render('G  A  M  E      O  V  E  R', True, Color.dimGray)
+        gameoverImage = pygame.font.Font('src/courbd.ttf', 48).render('G A M E    O V E R', True, Color.dimGray)
         topLeft = ((Settings.initialWindowSize[0] - gameoverImage.get_width()) / 2,
                    topLeft[1] - gameoverImage.get_height() * 2)
         self._screen.blit(gameoverImage, topLeft)
@@ -96,6 +98,7 @@ class Game:
         """ 重开游戏 """
         self._gameState = 1
         self._frameCount = 0
+        self._score.setScore(0)
         self._dinosaur.restart()
         self._cactusGroup.empty()
         self._birdGroup.empty()
@@ -138,8 +141,8 @@ class Game:
                     if self._gameState == 1:
                         self._dinosaur.endUp()
 
-    def draw(self):
-        """ 绘制 """
+    def updateAndDraw(self):
+        """ 更新并绘制 """
 
         def showGameScene():
             """ 显示当前帧 """
@@ -149,6 +152,7 @@ class Game:
             self._cactusGroup.draw(self._screen)
             self._birdGroup.draw(self._screen)
             self._dinosaur.draw(self._screen)
+            self._score.draw(self._screen)
 
         if self._gameState == 0:
             self._startScene.draw(self._screen)
@@ -158,6 +162,7 @@ class Game:
             self._updateEnemies()
             self._updateClouds()
             self._dinosaur.update()
+            self._score.addScore(1)
             # 显示
             showGameScene()
             # 碰撞检测

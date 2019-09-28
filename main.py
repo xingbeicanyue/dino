@@ -9,5 +9,5 @@ game = Game(pygame.display.set_mode(Settings.initialWindowSize))
 clock = pygame.time.Clock()
 while True:
     game.handleEvents()
-    game.draw()
+    game.updateAndDraw()
     clock.tick(Settings.maxFPS)

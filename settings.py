@@ -32,8 +32,8 @@ class Settings:
     screenBirdRate = 0.07  # 屏幕宽->鸟宽倍率
     birdTops = (255, 295, 345)  # 鸟可能的上侧坐标
 
-    enemyMaxProbability = 400  # 必然出现敌人的几率数值
-    enemyMinFrameInterval = 25  # 敌人最小帧数间隔
+    enemyMaxProbability = maxFPS * 6.7  # 必然出现敌人的几率数值
+    enemyMinFrameInterval = maxFPS * 0.4  # 敌人最小帧数间隔
 
     terrianTopLeft = (0, 405)  # 地形左上角点
     terrianSpeed = 720 / maxFPS  # 地形初始移动速度
@@ -48,3 +48,5 @@ class Settings:
 
     screenRestartImageRate = 0.056  # 屏幕宽->重新开始按钮宽倍率
     restartMinFrameCount = maxFPS / 3  # 重新开始界面最小显示帧数
+
+    scoreRate = 0.16  # 实际分数->显示分数倍率
