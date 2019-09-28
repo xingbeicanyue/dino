@@ -22,7 +22,7 @@ class Settings:
     jumpFrame = maxFPS / 2  # 大跳持续帧数
     littleJumpFrame = maxFPS / 3  # 小跳持续帧数
     frameSpeedRate = 6000 / maxFPS ** 2  # 帧数->跳跃高度变化速度倍率
-    fallSpeed = 1320 / maxFPS  # 加速降落速度
+    fallSpeed = 1500 / maxFPS  # 加速降落速度
     jumpCommandFrame = 5  # 跳跃按键抬起接收帧数（区分大小跳）
 
     screenCactusRate = 0.04  # 屏幕宽->大仙人掌宽倍率
@@ -32,21 +32,23 @@ class Settings:
     screenBirdRate = 0.07  # 屏幕宽->鸟宽倍率
     birdTops = (255, 295, 345)  # 鸟可能的上侧坐标
 
-    enemyMaxProbability = maxFPS * 6.7  # 必然出现敌人的几率数值
-    enemyMinFrameInterval = maxFPS * 0.4  # 敌人最小帧数间隔
+    enemyInitProbability = 100  # x，每帧出现敌人的初始概率为1/x
+    enemyMaxProbability = 20  # x，每帧出现敌人的最大概率为1/x
+    enemyInitMinFrameInterval = maxFPS * 0.5  # 敌人初始最小帧数间隔
+    enemyMinMinFrameInterval = maxFPS * 0.35  # 敌人最小最小帧数间隔
+    birdScore = 500  # 出现鸟的最低分数
 
     terrianTopLeft = (0, 405)  # 地形左上角点
-    terrianSpeed = 720 / maxFPS  # 地形初始移动速度
+    terrianInitSpeed = 800 / maxFPS  # 地形初始移动速度
+    terrianMaxSpeed = 2400 / maxFPS  # 地形最大移动速度
 
     screenCloudRate = 0.075  # 屏幕宽->云宽倍率
-    cloudSpeed = 3  # 云移动速度
-    cloudProbabilitySpeed = 1  # 出现云概率增加速度
-    cloudMaxProbability = 10000  # 必然出现云的几率数值
-    cloudMinInterval = 150  # 云最小x坐标差
     cloudMinTop = 300  # 云上侧最低坐标
     cloudMaxTop = 180  # 云上侧最高坐标
+    cloudSpeed = 3  # 云移动速度
+    cloudProbability = 200  # x，每帧出现云的初始概率为1/x
 
     screenRestartImageRate = 0.056  # 屏幕宽->重新开始按钮宽倍率
     restartMinFrameCount = maxFPS / 3  # 重新开始界面最小显示帧数
 
-    scoreRate = 0.16  # 实际分数->显示分数倍率
+    scoreRate = 0.012  # 实际分数->显示分数倍率
