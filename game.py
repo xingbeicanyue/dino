@@ -37,7 +37,7 @@ class Game:
 
     def _loadRestartImage(self):
         """ 加载重新开始图片并根据屏幕窗口调整大小 """
-        self._restartImage = pygame.image.load('src/restart.png').convert()
+        self._restartImage = pygame.image.load('src/image/restart.png').convert()
         self._restartImage.set_colorkey(Settings.defaultColorKey)
         newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenRestartImageRate)
         newImageHeight = round(self._restartImage.get_height() * newImageWidth / self._restartImage.get_width())
@@ -101,7 +101,7 @@ class Game:
                    (Settings.initialWindowSize[1] - self._restartImage.get_height()) / 2)
         self._screen.blit(self._restartImage, topLeft)
 
-        gameoverImage = pygame.font.Font('src/courbd.ttf', 48).render('G A M E    O V E R', True, Color.dimGray)
+        gameoverImage = pygame.font.Font('src/font/courbd.ttf', 48).render('G A M E    O V E R', True, Color.dimGray)
         topLeft = ((Settings.initialWindowSize[0] - gameoverImage.get_width()) / 2,
                    topLeft[1] - gameoverImage.get_height() * 2)
         self._screen.blit(gameoverImage, topLeft)

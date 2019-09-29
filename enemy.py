@@ -29,7 +29,7 @@ class Cactus(pygame.sprite.Sprite):
     def _loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
         if not Cactus.surfArrays:
-            image = pygame.image.load('src/cactus.png').convert()
+            image = pygame.image.load('src/image/cactus.png').convert()
             images = baseFunc.divideSruface(image, 1, 3)
             for i in range(len(images)):
                 newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenCactusRate)
@@ -74,7 +74,7 @@ class Bird(pygame.sprite.Sprite):
     def _loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
         if not Bird.images:
-            image = pygame.image.load('src/bird.png').convert()
+            image = pygame.image.load('src/image/bird.png').convert()
             image.set_colorkey(Settings.defaultColorKey)
             Bird.images = baseFunc.divideSruface(image, 1, 2)
             for i in range(len(Bird.images)):

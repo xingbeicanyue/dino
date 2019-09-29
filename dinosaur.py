@@ -26,6 +26,7 @@ class Dinosaur(pygame.sprite.Sprite):
         """ 初始化 """
         super().__init__()
         self._loadImage()
+        self._loadSound()
         self._game = game
         self._state = DinosaurState.run
         self._addHeight = 0  # 高度
@@ -42,7 +43,7 @@ class Dinosaur(pygame.sprite.Sprite):
     def _loadImage(self):
         """ 载入图片并根据屏幕窗口调整大小 """
         # 跑步状态
-        runningImg = pygame.image.load('src/dinoRunning.png').convert()
+        runningImg = pygame.image.load('src/image/dinoRunning.png').convert()
         runningImg.set_colorkey(Settings.defaultColorKey)
         self._runningImgs = baseFunc.divideSruface(runningImg, 1, 2)
         newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDinoRate)
@@ -51,7 +52,7 @@ class Dinosaur(pygame.sprite.Sprite):
             self._runningImgs[i] = pygame.transform.scale(self._runningImgs[i], (newImageWidth, newImageHeight))
 
         # 俯冲状态
-        divingImg = pygame.image.load('src/dinoDiving.png').convert()
+        divingImg = pygame.image.load('src/image/dinoDiving.png').convert()
         divingImg.set_colorkey(Settings.defaultColorKey)
         self._divingImgs = baseFunc.divideSruface(divingImg, 1, 2)
         newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDivingDinoRate)
@@ -60,18 +61,23 @@ class Dinosaur(pygame.sprite.Sprite):
             self._divingImgs[i] = pygame.transform.scale(self._divingImgs[i], (newImageWidth, newImageHeight))
 
         # 跳跃状态
-        self._jumpingImg = pygame.image.load('src/dinoJumping.png').convert()
+        self._jumpingImg = pygame.image.load('src/image/dinoJumping.png').convert()
         self._jumpingImg.set_colorkey(Settings.defaultColorKey)
         newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDinoRate)
         newImageHeight = round(self._jumpingImg.get_height() * newImageWidth / self._jumpingImg.get_width())
         self._jumpingImg = pygame.transform.scale(self._jumpingImg, (newImageWidth, newImageHeight))
 
         # 死亡状态
-        self._dyingImg = pygame.image.load('src/dinoDying.png').convert()
+        self._dyingImg = pygame.image.load('src/image/dinoDying.png').convert()
         self._dyingImg.set_colorkey(Settings.defaultColorKey)
         newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDinoRate)
         newImageHeight = round(self._dyingImg.get_height() * newImageWidth / self._dyingImg.get_width())
         self._dyingImg = pygame.transform.scale(self._dyingImg, (newImageWidth, newImageHeight))
+
+    def _loadSound(self):
+        """ 加载音效 """
+        self._jumpSound = pygame.mixer.Sound("src/sound/jump.wav")
+        self._dieSound = pygame.mixer.Sound("src/sound/die.wav")
 
     def update(self):
         """ 更新位置、状态及图片 """
@@ -90,6 +96,7 @@ class Dinosaur(pygame.sprite.Sprite):
                     self._state = DinosaurState.dive
                 elif self._upPressed:
                     self._state = DinosaurState.startJump
+                    self._jumpSound.play()
                 else:
                     self._state = DinosaurState.run
         self.image = self.getShowImage()
@@ -152,6 +159,7 @@ class Dinosaur(pygame.sprite.Sprite):
         if (not self._downPressed) and (self._state == DinosaurState.run):
             self._state = DinosaurState.startJump
             self._jumpingFrame = 0
+            self._jumpSound.play()
 
     def endUp(self):
         """ 结束跳跃按键 """
@@ -163,6 +171,7 @@ class Dinosaur(pygame.sprite.Sprite):
     def die(self):
         """ 进入死亡状态 """
         self._state = DinosaurState.die
+        self._dieSound.play()
 
     def restart(self):
         """ 重置状态 """
