@@ -13,7 +13,7 @@ class StartScene:
     def __init__(self):
         """ 初始化 """
         coverImage = pygame.image.load('src/image/coverImage.png').convert()
-        self._coverImages = baseFunc.divideSruface(coverImage, 1, 2)
+        self._coverImages = baseFunc.divideSurface(coverImage, 1, 2)
         self._textImage = pygame.image.load('src/image/coverText.png').convert()
 
     def draw(self, screen):

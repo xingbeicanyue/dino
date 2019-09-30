@@ -9,8 +9,9 @@ from settings import Color, Settings
 class Score:
     """ 分数系统 """
 
-    def __init__(self):
+    def __init__(self, game):
         """ 初始化 """
+        self._game = game
         self._curScore = 0  # 当前分数
         self._highestScore = 0  # 历史最高分
         self._font = pygame.font.Font('src/font/courbd.ttf', 36)  # 显示分数的字体
@@ -39,6 +40,7 @@ class Score:
         """ 显示分数 """
         scoreStr = f'HI {round(self._highestScore * Settings.scoreRate):05d} '\
             f'{round(self._curScore * Settings.scoreRate):05d} '
-        scoreImage = self._font.render(scoreStr, True, Color.dimGray)
+        color = Color.invert(Color.dimGray) if self._game.showNightImage() else Color.dimGray
+        scoreImage = self._font.render(scoreStr, True, color)
         topLeft = ((Settings.initialWindowSize[0] - scoreImage.get_width()), scoreImage.get_height())
         screen.blit(scoreImage, topLeft)

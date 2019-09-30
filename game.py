@@ -5,11 +5,12 @@
 import random
 import sys
 import pygame
-from settings import Color, Settings
+from settings import Settings
 from startScene import StartScene
+from gameoverScene import GameoverScene
 from dinosaur import Dinosaur
 from enemy import Cactus, Bird
-from env import Cloud, Terrian
+from env import Cloud, Moon, Star, Terrian
 from score import Score
 
 
@@ -21,27 +22,24 @@ class Game:
         self._screen = screen  # 屏幕
         self._gameState = 0  # 0:开始画面; 1:游戏中; 2:游戏结束
         self._frameCount = 0  # 每个游戏状态的帧数计数
-        self._score = Score()  # 分数系统
+        self._score = Score(self)  # 分数系统
         self._startScene = StartScene()
+        self._gameoverScene = GameoverScene(self)
         self._dinosaur = Dinosaur(self)
         self._cactusGroup = pygame.sprite.RenderPlain()
         self._birdGroup = pygame.sprite.RenderPlain()
         self._terrian = Terrian(self)
         self._cloudGroup = pygame.sprite.RenderPlain()
+        self._moon = Moon(self)
+        self._starGroup = pygame.sprite.RenderPlain()
 
         self._lastEnemyFrameCount = 0  # 上一次出现敌人的帧数计数
         self._curEnemeyProbability = Settings.enemyInitProbability  # x，当前每帧敌人出现的概率为1/x
-        self._curEnemyMinFrameInterval = Settings.enemyInitMinFrameInterval  # 敌人最小帧数间隔
+        self._curEnemyMinFrameInterval = Settings.enemyInitMinFrameInterval  # 当前敌人最小帧数间隔
         self._curTerrianSpeed = Settings.terrianInitSpeed  # 当前地形移动速度
-        self._loadRestartImage()
-
-    def _loadRestartImage(self):
-        """ 加载重新开始图片并根据屏幕窗口调整大小 """
-        self._restartImage = pygame.image.load('src/image/restart.png').convert()
-        self._restartImage.set_colorkey(Settings.defaultColorKey)
-        newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenRestartImageRate)
-        newImageHeight = round(self._restartImage.get_height() * newImageWidth / self._restartImage.get_width())
-        self._restartImage = pygame.transform.scale(self._restartImage, (newImageWidth, newImageHeight))
+        self._lastCloudFrameCount = Settings.cloudFrameInterval  # 上一次出现云的帧数计数
+        self._isDay = True  # 是否白天
+        self._dayNightFrame = Settings.dayNightChangeFrame  # 自从白天/黑夜开始的帧数，初始值不为0，因为开始无需昼夜交替
 
     def _updateEnemies(self):
         """ 更新敌人 """
@@ -54,15 +52,15 @@ class Game:
             if bird.rect.right < 0:
                 self._birdGroup.remove(bird)
 
-        frameWithoutEnemy = self._frameCount - self._lastEnemyFrameCount
-        if frameWithoutEnemy > self._curEnemyMinFrameInterval and\
+        self._lastEnemyFrameCount += 1
+        if self._lastEnemyFrameCount > self._curEnemyMinFrameInterval and\
                 (random.randint(0, round(self._curEnemeyProbability)) == 0 or
-                 frameWithoutEnemy >= self._curEnemeyProbability):
+                 self._lastEnemyFrameCount >= self._curEnemeyProbability):
             if (self._score.curScore * Settings.scoreRate) < Settings.birdScore or random.randint(0, 2) <= 1:
                 self._cactusGroup.add(Cactus(self))
             else:
                 self._birdGroup.add(Bird(self))
-            self._lastEnemyFrameCount = self._frameCount
+            self._lastEnemyFrameCount = 0
 
     def _updateClouds(self):
         """ 更新云群 """
@@ -70,9 +68,33 @@ class Game:
         for cloud in self._cloudGroup.copy():
             if cloud.rect.right < 0:
                 self._cloudGroup.remove(cloud)
-        if random.randint(0, Settings.cloudProbability) == 0:
-            self._cloudGroup.add(Cloud(self, (self._screen.get_width(),
-                                              random.randint(Settings.cloudMaxTop, Settings.cloudMinTop))))
+
+        self._lastCloudFrameCount += 1
+        if self._lastCloudFrameCount > Settings.cloudFrameInterval and\
+                random.randint(0, Settings.cloudProbability) == 0:
+            self._cloudGroup.add(Cloud(self))
+            self._lastCloudFrameCount = 0
+
+    def _updateStars(self):
+        """ 更新星群 """
+        self._starGroup.update()
+        for star in self._starGroup.copy():
+            if star.rect.right < 0:
+                self._starGroup.remove(star)
+        if random.randint(0, Settings.starProbability) == 0:
+            self._starGroup.add(Star(self))
+
+    def _updateDayNight(self):
+        """ 更新日夜状态 """
+        showScore = self._score.curScore * Settings.scoreRate
+        curIsDay = (showScore < Settings.dayNightScore) or (showScore % Settings.dayNightScore > Settings.nightScore)
+        if curIsDay == self._isDay:
+            self._dayNightFrame += 1
+        else:
+            self._isDay = curIsDay
+            self._dayNightFrame = max(Settings.dayNightChangeFrame - self._dayNightFrame, 0)
+            if curIsDay:
+                self._moon.nextPhase()
 
     def _updateDifficulty(self):
         """ 更新难度参数 """
@@ -95,17 +117,6 @@ class Game:
         return pygame.sprite.spritecollide(self._dinosaur, self._cactusGroup, False, pygame.sprite.collide_mask) or\
             pygame.sprite.spritecollide(self._dinosaur, self._birdGroup, False, pygame.sprite.collide_mask)
 
-    def _drawRestartImage(self):
-        """ 显示重新开始画面 """
-        topLeft = ((Settings.initialWindowSize[0] - self._restartImage.get_width()) / 2,
-                   (Settings.initialWindowSize[1] - self._restartImage.get_height()) / 2)
-        self._screen.blit(self._restartImage, topLeft)
-
-        gameoverImage = pygame.font.Font('src/font/courbd.ttf', 48).render('G A M E    O V E R', True, Color.dimGray)
-        topLeft = ((Settings.initialWindowSize[0] - gameoverImage.get_width()) / 2,
-                   topLeft[1] - gameoverImage.get_height() * 2)
-        self._screen.blit(gameoverImage, topLeft)
-
     def _restart(self):
         """ 重开游戏 """
         self._gameState = 1
@@ -123,6 +134,13 @@ class Game:
     def curTerrianSpeed(self):
         """ 获取当前地形移动速度 """
         return self._curTerrianSpeed
+
+    def showNightImage(self):
+        """ 是否显示夜晚图像 """
+        if self._isDay:
+            return self._dayNightFrame < Settings.dayNightChangeFrame - Settings.dayToNightChangeColorFrame
+        else:
+            return self._dayNightFrame >= Settings.dayToNightChangeColorFrame
 
     def handleEvents(self):
         """ 处理事件 """
@@ -160,8 +178,15 @@ class Game:
 
         def showGameScene():
             """ 显示当前帧 """
-            self._screen.fill(rect=self._screen.get_rect(), color=(255, 255, 255))
+            colorValue = round(255 * min(self._dayNightFrame / Settings.dayNightChangeFrame, 1))
+            if not self._isDay:
+                colorValue = 255 - colorValue
+            self._screen.fill(rect=self._screen.get_rect(), color=(colorValue, colorValue, colorValue))
+
             self._terrian.draw(self._screen)
+            if not self._isDay and self._dayNightFrame > Settings.dayToNightMoonShowFrame:
+                self._moon.draw(self._screen)
+                self._starGroup.draw(self._screen)
             self._cloudGroup.draw(self._screen)
             self._cactusGroup.draw(self._screen)
             self._birdGroup.draw(self._screen)
@@ -174,9 +199,12 @@ class Game:
             # 更新状态
             self._terrian.update()
             self._updateClouds()
+            self._moon.update()
+            self._updateStars()
             self._updateEnemies()
             self._dinosaur.update()
             self._score.addScore(self._curTerrianSpeed)
+            self._updateDayNight()
             self._updateDifficulty()
             # 显示
             showGameScene()
@@ -187,5 +215,5 @@ class Game:
                 self._frameCount = 0
         else:
             showGameScene()
-            self._drawRestartImage()
+            self._gameoverScene.draw(self._screen)
         pygame.display.update()
