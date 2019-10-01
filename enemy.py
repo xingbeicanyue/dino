@@ -20,7 +20,7 @@ class Cactus(pygame.sprite.Sprite):
         Cactus._loadImage()
         self._game = game
         self.isLarge = random.randint(0, 1) == 1  # 是否大仙人掌
-        self.num = random.randint(1, 4)  # 仙人掌数
+        self.num = random.randint(1, 3 if self._game.curShowScore < Settings.maxCactusScore else 4)  # 仙人掌数
         self._initCactus()
         self.image = self._imageDay
         self.rect = pygame.Rect((Settings.initialWindowSize[0], Settings.cactusBottom - self.image.get_height()),

@@ -131,6 +131,11 @@ class Game:
         self._curTerrianSpeed = Settings.terrianInitSpeed
 
     @property
+    def curShowScore(self):
+        """ 获取当前展示分数 """
+        return self._score.curShowScore
+
+    @property
     def curTerrianSpeed(self):
         """ 获取当前地形移动速度 """
         return self._curTerrianSpeed
@@ -183,10 +188,10 @@ class Game:
                 colorValue = 255 - colorValue
             self._screen.fill(rect=self._screen.get_rect(), color=(colorValue, colorValue, colorValue))
 
-            self._terrian.draw(self._screen)
             if not self._isDay and self._dayNightFrame > Settings.dayToNightMoonShowFrame:
-                self._moon.draw(self._screen)
                 self._starGroup.draw(self._screen)
+                self._moon.draw(self._screen)
+            self._terrian.draw(self._screen)
             self._cloudGroup.draw(self._screen)
             self._cactusGroup.draw(self._screen)
             self._birdGroup.draw(self._screen)

@@ -22,6 +22,11 @@ class Score:
         return self._curScore
 
     @property
+    def curShowScore(self):
+        """ 获取当前展示分数 """
+        return round(self._curScore * Settings.scoreRate)
+
+    @property
     def highestScore(self):
         """ 获取历史最高分 """
         return self._highestScore
