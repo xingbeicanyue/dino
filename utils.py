@@ -38,13 +38,16 @@ def divideSurface(surface: pygame.Surface, rowCount: int, colCount: int, count: 
     return result
 
 
-def loadImage(fileName: str, colorkey=None, width=0) -> pygame.Surface:
+def loadImage(fileName: str, colorkey=None, width=0, convert: bool = True) -> pygame.Surface:
     """ 读取图像，并设置透明色与尺寸
     :param fileName: 文件名
     :param colorkey: 透明色
     :param width: 宽度，=0时不改变尺寸
+    :param convert: 是否转变为与display相同的像素格式
     """
-    result = pygame.image.load(fileName).convert()
+    result = pygame.image.load(fileName)
+    if convert:
+        result = result.convert()
     if colorkey:
         result.set_colorkey(colorkey)
     if width > 0:
@@ -54,7 +57,8 @@ def loadImage(fileName: str, colorkey=None, width=0) -> pygame.Surface:
     return result
 
 
-def loadImages(fileName: str, rowCount: int, colCount: int, count: int = -1, colorkey=None, width=0) -> list:
+def loadImages(fileName: str, rowCount: int, colCount: int, count: int = -1, colorkey=None, width=0,
+               convert: bool = True) -> list:
     """ 读取、分割图像，并设置透明色与尺寸
     :param fileName: 文件名
     :param rowCount: 行数
@@ -62,8 +66,11 @@ def loadImages(fileName: str, rowCount: int, colCount: int, count: int = -1, col
     :param count: 最终的子图像数，顺序从上至下、每行从左至右，多余的子图会被抛弃
     :param colorkey: 透明色
     :param width: 宽度，=0时不改变尺寸
+    :param convert: 是否转变为与display相同的像素格式
     """
-    image = pygame.image.load(fileName).convert()
+    image = pygame.image.load(fileName)
+    if convert:
+        image = image.convert()
     if colorkey:
         image.set_colorkey(colorkey)
     result = divideSurface(image, rowCount, colCount, count)

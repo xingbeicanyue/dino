@@ -9,7 +9,7 @@ pygame.init()
 game = Game(pygame.display.set_mode(Settings.initialWindowSize))
 
 pygame.display.set_caption('dino')
-pygame.display.set_icon(utils.loadImage('src/image/dinoJumping.png', Settings.defaultColorKey, 0))
+pygame.display.set_icon(utils.loadImage('src/image/dinoJumping.png', Settings.defaultColorKey, 0, False))
 
 clock = pygame.time.Clock()
 while True:
