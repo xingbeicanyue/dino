@@ -3,7 +3,7 @@
 """
 
 import pygame
-import baseFunc
+import utils
 from settings import Settings
 
 
@@ -12,9 +12,8 @@ class StartScene:
 
     def __init__(self):
         """ 初始化 """
-        coverImage = pygame.image.load('src/image/coverImage.png').convert()
-        self._coverImages = baseFunc.divideSurface(coverImage, 1, 2)
-        self._textImage = pygame.image.load('src/image/coverText.png').convert()
+        self._coverImages = utils.loadImages('src/image/coverImage.png', 1, 2)
+        self._textImage = utils.loadImage('src/image/coverText.png')
 
     def draw(self, screen):
         """ 绘制 """

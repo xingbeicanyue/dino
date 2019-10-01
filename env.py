@@ -4,7 +4,7 @@
 
 import random
 import pygame
-import baseFunc
+import utils
 from settings import Settings
 
 
@@ -26,19 +26,13 @@ class Terrian(pygame.sprite.Sprite):
     def _loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
         if not Terrian.imageDay:
-            Terrian.imageDay = pygame.image.load('src/image/terrian.png').convert()
-            Terrian.imageDay.set_colorkey(Settings.defaultColorKey)
-            newImageWidth = round(Settings.initialWindowSize[0] * 2)
-            newImageHeight = round(Terrian.imageDay.get_height() * newImageWidth / Terrian.imageDay.get_width())
-            Terrian.imageDay = pygame.transform.scale(Terrian.imageDay, (newImageWidth, newImageHeight))
-            Terrian.imageNight = baseFunc.invertSurface(Terrian.imageDay)
+            Terrian.imageDay = utils.loadImage('src/image/terrian.png', Settings.defaultColorKey,
+                                               Settings.initialWindowSize[0] * 2)
+            Terrian.imageNight = utils.invertSurface(Terrian.imageDay)
 
     def update(self):
         """ 更新 """
-        if self._game.showNightImage():
-            self.image = Terrian.imageNight
-        else:
-            self.image = Terrian.imageDay
+        self.image = Terrian.imageNight if self._game.showNightImage() else Terrian.imageDay
         self.rect = self.rect.move(-self._game.curTerrianSpeed, 0)
         if self.rect.right < Settings.initialWindowSize[0]:
             self.rect = self.rect.move(Settings.initialWindowSize[0], 0)
@@ -67,19 +61,13 @@ class Cloud(pygame.sprite.Sprite):
     def _loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
         if not Cloud.imageDay:
-            Cloud.imageDay = pygame.image.load('src/image/cloud.png').convert()
-            Cloud.imageDay.set_colorkey(Settings.defaultColorKey)
-            newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenCloudRate)
-            newImageHeight = round(Cloud.imageDay.get_height() * newImageWidth / Cloud.imageDay.get_width())
-            Cloud.imageDay = pygame.transform.scale(Cloud.imageDay, (newImageWidth, newImageHeight))
-            Cloud.imageNight = baseFunc.invertSurface(Cloud.imageDay)
+            Cloud.imageDay = utils.loadImage('src/image/cloud.png', Settings.defaultColorKey,
+                                             Settings.initialWindowSize[0] * Settings.screenCloudRate)
+            Cloud.imageNight = utils.invertSurface(Cloud.imageDay)
 
     def update(self):
         """ 更新 """
-        if self._game.showNightImage():
-            self.image = Cloud.imageNight
-        else:
-            self.image = Cloud.imageDay
+        self.image = Cloud.imageNight if self._game.showNightImage() else Cloud.imageDay
         self.rect = self.rect.move(-Settings.cloudSpeed, 0)
 
 
@@ -93,7 +81,7 @@ class Moon(pygame.sprite.Sprite):
         super().__init__()
         Moon._loadImage()
         self._game = game
-        self._imageIndex = 0
+        self._imageIndex = 0  # 月相下标
         self.image = Moon.images[self._imageIndex]
         self.rect = pygame.Rect((Settings.initialWindowSize[0], Settings.moonTop), self.image.get_size())
 
@@ -101,13 +89,8 @@ class Moon(pygame.sprite.Sprite):
     def _loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
         if not Moon.images:
-            image = pygame.image.load('src/image/moon.png').convert()
-            image.set_colorkey(Settings.defaultColorKey)
-            Moon.images = baseFunc.divideSurface(image, 1, 7)
-            for i in range(len(Moon.images)):
-                newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenMoonRate)
-                newImageHeight = round(Moon.images[i].get_height() * newImageWidth / Moon.images[i].get_width())
-                Moon.images[i] = pygame.transform.scale(Moon.images[i], (newImageWidth, newImageHeight))
+            Moon.images = utils.loadImages('src/image/moon.png', 1, 7, -1, Settings.defaultColorKey,
+                                           Settings.initialWindowSize[0] * Settings.screenMoonRate)
 
     def update(self):
         """ 更新 """
@@ -143,13 +126,8 @@ class Star(pygame.sprite.Sprite):
     def _loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
         if not Star.images:
-            image = pygame.image.load('src/image/star.png').convert()
-            image.set_colorkey(Settings.defaultColorKey)
-            Star.images = baseFunc.divideSurface(image, 1, 2)
-            for i in range(len(Star.images)):
-                newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenStarRate)
-                newImageHeight = round(Star.images[i].get_height() * newImageWidth / Star.images[i].get_width())
-                Star.images[i] = pygame.transform.scale(Star.images[i], (newImageWidth, newImageHeight))
+            Star.images = utils.loadImages('src/image/star.png', 1, 2, -1, Settings.defaultColorKey,
+                                           Settings.initialWindowSize[0] * Settings.screenStarRate)
 
     def update(self):
         """ 更新 """

@@ -4,7 +4,7 @@
 
 import enum
 import pygame
-import baseFunc
+import utils
 from settings import Settings
 
 
@@ -43,43 +43,24 @@ class Dinosaur(pygame.sprite.Sprite):
     def _loadImage(self):
         """ 载入图片并根据屏幕窗口调整大小 """
         # 跑步状态
-        runningImg = pygame.image.load('src/image/dinoRunning.png').convert()
-        runningImg.set_colorkey(Settings.defaultColorKey)
-        self._runningImageDays = baseFunc.divideSurface(runningImg, 1, 2)
-        newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDinoRate)
-        newImageHeight = round(self._runningImageDays[0].get_height() * newImageWidth /
-                               self._runningImageDays[0].get_width())
-        for i in range(len(self._runningImageDays)):
-            self._runningImageDays[i] = pygame.transform.scale(
-                self._runningImageDays[i], (newImageWidth, newImageHeight))
-        self._runningImageNights = baseFunc.invertSurfaces(self._runningImageDays)
+        self._runningImageDays = utils.loadImages('src/image/dinoRunning.png', 1, 2, -1, Settings.defaultColorKey,
+                                                  Settings.initialWindowSize[0] * Settings.screenDinoRate)
+        self._runningImageNights = utils.invertSurfaces(self._runningImageDays)
 
         # 俯冲状态
-        divingImg = pygame.image.load('src/image/dinoDiving.png').convert()
-        divingImg.set_colorkey(Settings.defaultColorKey)
-        self._divingImageDays = baseFunc.divideSurface(divingImg, 1, 2)
-        newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDivingDinoRate)
-        newImageHeight = round(self._divingImageDays[0].get_height() * newImageWidth /
-                               self._divingImageDays[0].get_width())
-        for i in range(len(self._divingImageDays)):
-            self._divingImageDays[i] = pygame.transform.scale(self._divingImageDays[i], (newImageWidth, newImageHeight))
-        self._divingImageNights = baseFunc.invertSurfaces(self._divingImageDays)
+        self._divingImageDays = utils.loadImages('src/image/dinoDiving.png', 1, 2, -1, Settings.defaultColorKey,
+                                                 Settings.initialWindowSize[0] * Settings.screenDivingDinoRate)
+        self._divingImageNights = utils.invertSurfaces(self._divingImageDays)
 
         # 跳跃状态
-        self._jumpingImageDay = pygame.image.load('src/image/dinoJumping.png').convert()
-        self._jumpingImageDay.set_colorkey(Settings.defaultColorKey)
-        newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDinoRate)
-        newImageHeight = round(self._jumpingImageDay.get_height() * newImageWidth / self._jumpingImageDay.get_width())
-        self._jumpingImageDay = pygame.transform.scale(self._jumpingImageDay, (newImageWidth, newImageHeight))
-        self._jumpingImageNight = baseFunc.invertSurface(self._jumpingImageDay)
+        self._jumpingImageDay = utils.loadImage('src/image/dinoJumping.png', Settings.defaultColorKey,
+                                                Settings.initialWindowSize[0] * Settings.screenDinoRate)
+        self._jumpingImageNight = utils.invertSurface(self._jumpingImageDay)
 
         # 死亡状态
-        self._dyingImageDay = pygame.image.load('src/image/dinoDying.png').convert()
-        self._dyingImageDay.set_colorkey(Settings.defaultColorKey)
-        newImageWidth = round(Settings.initialWindowSize[0] * Settings.screenDinoRate)
-        newImageHeight = round(self._dyingImageDay.get_height() * newImageWidth / self._dyingImageDay.get_width())
-        self._dyingImageDay = pygame.transform.scale(self._dyingImageDay, (newImageWidth, newImageHeight))
-        self._dyingImageNight = baseFunc.invertSurface(self._dyingImageDay)
+        self._dyingImageDay = utils.loadImage('src/image/dinoDying.png', Settings.defaultColorKey,
+                                              Settings.initialWindowSize[0] * Settings.screenDinoRate)
+        self._dyingImageNight = utils.invertSurface(self._dyingImageDay)
 
     def _loadSound(self):
         """ 加载音效 """
@@ -115,20 +96,21 @@ class Dinosaur(pygame.sprite.Sprite):
 
     def getShowImage(self) -> pygame.Surface:
         """ 获取显示的图片 """
+        imgIndex = pygame.time.get_ticks() // 100 % 2
         if self._game.showNightImage():
             if self._state == DinosaurState.run:
-                return self._runningImageNights[pygame.time.get_ticks() // 100 % 2]
+                return self._runningImageNights[imgIndex]
             elif self._state == DinosaurState.dive:
-                return self._divingImageNights[pygame.time.get_ticks() // 100 % 2]
+                return self._divingImageNights[imgIndex]
             elif self._inJumpingStates():
                 return self._jumpingImageNight
             else:
                 return self._dyingImageNight
         else:
             if self._state == DinosaurState.run:
-                return self._runningImageDays[pygame.time.get_ticks() // 100 % 2]
+                return self._runningImageDays[imgIndex]
             elif self._state == DinosaurState.dive:
-                return self._divingImageDays[pygame.time.get_ticks() // 100 % 2]
+                return self._divingImageDays[imgIndex]
             elif self._inJumpingStates():
                 return self._jumpingImageDay
             else:
@@ -144,10 +126,10 @@ class Dinosaur(pygame.sprite.Sprite):
                                 self._divingImageDays[0].get_height()), self._divingImageDays[0].get_size())
         elif self._inJumpingStates():
             return pygame.Rect((Settings.dinosaurLeft, Settings.dinosaurBottom - self._jumpingImageDay.get_height() -
-                               self._addHeight), self._jumpingImageDay.get_size())
+                                self._addHeight), self._jumpingImageDay.get_size())
         else:
             return pygame.Rect((Settings.dinosaurLeft, Settings.dinosaurBottom - self._dyingImageDay.get_height() -
-                               self._addHeight), self._dyingImageDay.get_size())
+                                self._addHeight), self._dyingImageDay.get_size())
 
     def startDown(self):
         """ 开始俯冲按键 """
@@ -190,8 +172,5 @@ class Dinosaur(pygame.sprite.Sprite):
         self._addHeight = 0
         self._jumpingFrame = 0
         self._downPressed, self._upPressed = False, False
-        if self._game.showNightImage():
-            self.image = self._runningImageNights[0]
-        else:
-            self.image = self._runningImageDays[0]
+        self.image = self._runningImageNights[0] if self._game.showNightImage() else self._runningImageDays[0]
         self.rect = self.getShowRect()

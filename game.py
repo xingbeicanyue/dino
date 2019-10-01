@@ -19,10 +19,12 @@ class Game:
 
     def __init__(self, screen):
         """ 初始化 """
-        self._screen = screen  # 屏幕
-        self._gameState = 0  # 0:开始画面; 1:游戏中; 2:游戏结束
+        self._screen = screen  # 屏幕画面
+        self._gameState = 0  # 游戏状态 0:开始画面; 1:游戏中; 2:游戏结束
         self._frameCount = 0  # 每个游戏状态的帧数计数
         self._score = Score(self)  # 分数系统
+
+        # 游戏元素
         self._startScene = StartScene()
         self._gameoverScene = GameoverScene(self)
         self._dinosaur = Dinosaur(self)
@@ -33,10 +35,13 @@ class Game:
         self._moon = Moon(self)
         self._starGroup = pygame.sprite.RenderPlain()
 
+        # 控制难度的变量
         self._lastEnemyFrameCount = 0  # 上一次出现敌人的帧数计数
         self._curEnemeyProbability = Settings.enemyInitProbability  # x，当前每帧敌人出现的概率为1/x
         self._curEnemyMinFrameInterval = Settings.enemyInitMinFrameInterval  # 当前敌人最小帧数间隔
         self._curTerrianSpeed = Settings.terrianInitSpeed  # 当前地形移动速度
+
+        # 控制环境的变量
         self._lastCloudFrameCount = Settings.cloudFrameInterval  # 上一次出现云的帧数计数
         self._isDay = True  # 是否白天
         self._dayNightFrame = Settings.dayNightChangeFrame  # 自从白天/黑夜开始的帧数，初始值不为0，因为开始无需昼夜交替
@@ -56,7 +61,7 @@ class Game:
         if self._lastEnemyFrameCount > self._curEnemyMinFrameInterval and\
                 (random.randint(0, round(self._curEnemeyProbability)) == 0 or
                  self._lastEnemyFrameCount >= self._curEnemeyProbability):
-            if (self._score.curScore * Settings.scoreRate) < Settings.birdScore or random.randint(0, 2) <= 1:
+            if self.curShowScore < Settings.birdScore or random.randint(0, 2) <= 1:
                 self._cactusGroup.add(Cactus(self))
             else:
                 self._birdGroup.add(Bird(self))
@@ -81,13 +86,14 @@ class Game:
         for star in self._starGroup.copy():
             if star.rect.right < 0:
                 self._starGroup.remove(star)
+
         if random.randint(0, Settings.starProbability) == 0:
             self._starGroup.add(Star(self))
 
     def _updateDayNight(self):
         """ 更新日夜状态 """
-        showScore = self._score.curScore * Settings.scoreRate
-        curIsDay = (showScore < Settings.dayNightScore) or (showScore % Settings.dayNightScore > Settings.nightScore)
+        curIsDay = (self.curShowScore < Settings.dayNightScore) or\
+                   (self.curShowScore % Settings.dayNightScore > Settings.nightScore)
         if curIsDay == self._isDay:
             self._dayNightFrame += 1
         else:
@@ -98,18 +104,16 @@ class Game:
 
     def _updateDifficulty(self):
         """ 更新难度参数 """
-        showScore = self._score.curScore * Settings.scoreRate
-
         self._curEnemeyProbability = Settings.enemyInitProbability +\
-            (Settings.enemyMaxProbability - Settings.enemyInitProbability) / 10000 * showScore
+            (Settings.enemyMaxProbability - Settings.enemyInitProbability) / 10000 * self.curShowScore
         self._curEnemeyProbability = max(self._curEnemeyProbability, Settings.enemyMaxProbability)
 
         self._curEnemyMinFrameInterval = Settings.enemyInitMinFrameInterval +\
-            (Settings.enemyMinMinFrameInterval - Settings.enemyInitMinFrameInterval) / 10000 * showScore
+            (Settings.enemyMinMinFrameInterval - Settings.enemyInitMinFrameInterval) / 10000 * self.curShowScore
         self._curEnemyMinFrameInterval = max(self._curEnemyMinFrameInterval, Settings.enemyMinMinFrameInterval)
 
         self._curTerrianSpeed = Settings.terrianInitSpeed +\
-            (Settings.terrianMaxSpeed - Settings.terrianInitSpeed) / 10000 * showScore
+            (Settings.terrianMaxSpeed - Settings.terrianInitSpeed) / 10000 * self.curShowScore
         self._curTerrianSpeed = min(self._curTerrianSpeed, Settings.terrianMaxSpeed)
 
     def _detectCollision(self) -> bool:
@@ -144,8 +148,7 @@ class Game:
         """ 是否显示夜晚图像 """
         if self._isDay:
             return self._dayNightFrame < Settings.dayNightChangeFrame - Settings.dayToNightChangeColorFrame
-        else:
-            return self._dayNightFrame >= Settings.dayToNightChangeColorFrame
+        return self._dayNightFrame >= Settings.dayToNightChangeColorFrame
 
     def handleEvents(self):
         """ 处理事件 """
@@ -153,30 +156,27 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if self._gameState == 0:
-                        self._gameState = 1
-                        self._frameCount = 0
-                        self._screen.fill((255, 255, 255))
-                    elif self._gameState == 1:
+            if self._gameState == 0:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self._gameState = 1
+                    self._frameCount = 0
+            elif self._gameState == 1:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
                         self._dinosaur.startUp()
-                    elif self._gameState == 2:
-                        if self._frameCount >= Settings.restartMinFrameCount:
-                            self._restart()
-                elif event.key == pygame.K_DOWN:
-                    if self._gameState == 1:
+                    elif event.key == pygame.K_DOWN:
                         self._dinosaur.startDown()
-                elif event.key == pygame.K_UP:
-                    if self._gameState == 1:
+                    elif event.key == pygame.K_UP:
                         self._dinosaur.startUp()
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_DOWN:
-                    if self._gameState == 1:
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_DOWN:
                         self._dinosaur.endDown()
-                elif event.key in (pygame.K_SPACE, pygame.K_UP):
-                    if self._gameState == 1:
+                    elif event.key in (pygame.K_SPACE, pygame.K_UP):
                         self._dinosaur.endUp()
+            else:
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    if self._frameCount >= Settings.restartMinFrameCount:
+                        self._restart()
 
     def updateAndDraw(self):
         """ 更新并绘制 """
@@ -219,6 +219,7 @@ class Game:
                 self._gameState = 2
                 self._frameCount = 0
         else:
-            showGameScene()
-            self._gameoverScene.draw(self._screen)
+            if self._frameCount <= 1:
+                showGameScene()
+                self._gameoverScene.draw(self._screen)
         pygame.display.update()
