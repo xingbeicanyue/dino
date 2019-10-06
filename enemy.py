@@ -26,11 +26,16 @@ class Cactus(pygame.sprite.Sprite):
         self.rect = pygame.Rect((Settings.initialWindowSize[0], Settings.cactusBottom - self.image.get_height()),
                                 self.image.get_size())
 
+    def update(self):
+        """ 更新 """
+        self.image = self._imageNight if self._game.showNightImage() else self._imageDay
+        self.rect = self.rect.move(-self._game.curTerrianSpeed, 0)
+
     @staticmethod
     def _loadImage():
         """ 载入图片并根据屏幕窗口调整大小 """
         if not Cactus.surfArrays:
-            images = utils.loadImages('src/image/cactus.png', 1, 3, -1, None,
+            images = utils.loadImages(Settings.cactusPath, 1, 3, -1, None,
                                       Settings.initialWindowSize[0] * Settings.screenCactusRate)
             Cactus.surfArrays = [pygame.surfarray.array3d(image) for image in images]
 
@@ -48,11 +53,6 @@ class Cactus(pygame.sprite.Sprite):
                                                      round(self._imageDay.get_height() * Settings.smallCactusRate)))
         self._imageNight = utils.invertSurface(self._imageDay)
 
-    def update(self):
-        """ 更新 """
-        self.image = self._imageNight if self._game.showNightImage() else self._imageDay
-        self.rect = self.rect.move(-self._game.curTerrianSpeed, 0)
-
 
 class Bird(pygame.sprite.Sprite):
     """ 鸟 """
@@ -69,15 +69,15 @@ class Bird(pygame.sprite.Sprite):
         self.rect = pygame.Rect((Settings.initialWindowSize[0], Settings.birdTops[random.randint(0, 2)]),
                                 Bird.imageDays[0].get_size())
 
-    @staticmethod
-    def _loadImage():
-        """ 载入图片并根据屏幕窗口调整大小 """
-        if not Bird.imageDays:
-            Bird.imageDays = utils.loadImages('src/image/bird.png', 1, 2, -1, Settings.defaultColorKey,
-                                              Settings.initialWindowSize[0] * Settings.screenBirdRate)
-            Bird.imageNights = utils.invertSurfaces(Bird.imageDays)
-
     def update(self):
         imgIndex = pygame.time.get_ticks() // 200 % 2
         self.image = Bird.imageNights[imgIndex] if self._game.showNightImage() else Bird.imageDays[imgIndex]
         self.rect = self.rect.move(-self._game.curTerrianSpeed, 0)
+
+    @staticmethod
+    def _loadImage():
+        """ 载入图片并根据屏幕窗口调整大小 """
+        if not Bird.imageDays:
+            Bird.imageDays = utils.loadImages(Settings.birdPath, 1, 2, -1, Settings.defaultColorKey,
+                                              Settings.initialWindowSize[0] * Settings.screenBirdRate)
+            Bird.imageNights = utils.invertSurfaces(Bird.imageDays)

@@ -35,38 +35,6 @@ class Dinosaur(pygame.sprite.Sprite):
         self.image = self._runningImageDays[0]
         self.rect = self.getShowRect()
 
-    def _inJumpingStates(self) -> bool:
-        """ 判断是否处于跳跃状态（跳跃起步、大跳、小跳、加速降落） """
-        return self._state in (DinosaurState.startJump, DinosaurState.jump,
-                               DinosaurState.littleJump, DinosaurState.fall)
-
-    def _loadImage(self):
-        """ 载入图片并根据屏幕窗口调整大小 """
-        # 跑步状态
-        self._runningImageDays = utils.loadImages('src/image/dinoRunning.png', 1, 2, -1, Settings.defaultColorKey,
-                                                  Settings.initialWindowSize[0] * Settings.screenDinoRate)
-        self._runningImageNights = utils.invertSurfaces(self._runningImageDays)
-
-        # 俯冲状态
-        self._divingImageDays = utils.loadImages('src/image/dinoDiving.png', 1, 2, -1, Settings.defaultColorKey,
-                                                 Settings.initialWindowSize[0] * Settings.screenDivingDinoRate)
-        self._divingImageNights = utils.invertSurfaces(self._divingImageDays)
-
-        # 跳跃状态
-        self._jumpingImageDay = utils.loadImage('src/image/dinoJumping.png', Settings.defaultColorKey,
-                                                Settings.initialWindowSize[0] * Settings.screenDinoRate)
-        self._jumpingImageNight = utils.invertSurface(self._jumpingImageDay)
-
-        # 死亡状态
-        self._dyingImageDay = utils.loadImage('src/image/dinoDying.png', Settings.defaultColorKey,
-                                              Settings.initialWindowSize[0] * Settings.screenDinoRate)
-        self._dyingImageNight = utils.invertSurface(self._dyingImageDay)
-
-    def _loadSound(self):
-        """ 加载音效 """
-        self._jumpSound = pygame.mixer.Sound("src/sound/jump.wav")
-        self._dieSound = pygame.mixer.Sound("src/sound/die.wav")
-
     def update(self):
         """ 更新位置、状态及图片 """
         if self._inJumpingStates():
@@ -174,3 +142,35 @@ class Dinosaur(pygame.sprite.Sprite):
         self._downPressed, self._upPressed = False, False
         self.image = self._runningImageNights[0] if self._game.showNightImage() else self._runningImageDays[0]
         self.rect = self.getShowRect()
+
+    def _inJumpingStates(self) -> bool:
+        """ 判断是否处于跳跃状态（跳跃起步、大跳、小跳、加速降落） """
+        return self._state in (DinosaurState.startJump, DinosaurState.jump,
+                               DinosaurState.littleJump, DinosaurState.fall)
+
+    def _loadImage(self):
+        """ 载入图片并根据屏幕窗口调整大小 """
+        # 跑步状态
+        self._runningImageDays = utils.loadImages(Settings.dinoRunningPath, 1, 2, -1, Settings.defaultColorKey,
+                                                  Settings.initialWindowSize[0] * Settings.screenDinoRate)
+        self._runningImageNights = utils.invertSurfaces(self._runningImageDays)
+
+        # 俯冲状态
+        self._divingImageDays = utils.loadImages(Settings.dinoDivingPath, 1, 2, -1, Settings.defaultColorKey,
+                                                 Settings.initialWindowSize[0] * Settings.screenDivingDinoRate)
+        self._divingImageNights = utils.invertSurfaces(self._divingImageDays)
+
+        # 跳跃状态
+        self._jumpingImageDay = utils.loadImage(Settings.dinoJumpingPath, Settings.defaultColorKey,
+                                                Settings.initialWindowSize[0] * Settings.screenDinoRate)
+        self._jumpingImageNight = utils.invertSurface(self._jumpingImageDay)
+
+        # 死亡状态
+        self._dyingImageDay = utils.loadImage(Settings.dinoDyingPath, Settings.defaultColorKey,
+                                              Settings.initialWindowSize[0] * Settings.screenDinoRate)
+        self._dyingImageNight = utils.invertSurface(self._dyingImageDay)
+
+    def _loadSound(self):
+        """ 加载音效 """
+        self._jumpSound = pygame.mixer.Sound(Settings.jumpSoundPath)
+        self._dieSound = pygame.mixer.Sound(Settings.dieSoundPath)

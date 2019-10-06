@@ -9,6 +9,7 @@ class Settings:
     """ 参数设置 """
 
     # 全局参数
+    caption = 'dino'  # 游戏标题
     initialWindowSize = (1280, 720)  # 窗口初始尺寸
     maxFPS = 120  # 最大帧数
     defaultColorKey = Color.white  # 默认设为透明的颜色
@@ -81,3 +82,27 @@ class Settings:
 
     # 分数
     scoreRate = 0.012  # 实际分数->显示分数倍率
+    maxDifficultyScore = 10000  # 达到最高难度的分数
+
+    # 资源路径
+    imgBasePath = 'src/image'  # 图片资源根路径
+    coverImagePath = imgBasePath + '/coverImage.png'  # 封面图
+    coverTextPath = imgBasePath + '/coverText.png'  # 封面文字
+    restartPath = imgBasePath + '/restart.png'  # 重新开始
+    dinoRunningPath = imgBasePath + '/dinoRunning.png'  # 恐龙跑步
+    dinoJumpingPath = imgBasePath + '/dinoJumping.png'  # 恐龙跳跃
+    dinoDivingPath = imgBasePath + '/dinoDiving.png'  # 恐龙俯冲
+    dinoDyingPath = imgBasePath + '/dinoDying.png'  # 恐龙死亡
+    cactusPath = imgBasePath + '/cactus.png'  # 仙人掌
+    birdPath = imgBasePath + '/bird.png'  # 鸟
+    terrianPath = imgBasePath + '/terrian.png'  # 地形
+    cloudPath = imgBasePath + '/cloud.png'  # 云
+    moonPath = imgBasePath + '/moon.png'  # 月亮
+    starPath = imgBasePath + '/star.png'  # 星星
+
+    soundBasePath = 'src/sound'  # 音效资源根路径
+    jumpSoundPath = soundBasePath + '/jump.wav'  # 跳跃音效
+    dieSoundPath = soundBasePath + '/die.wav'  # 死亡音效
+
+    fontBasePath = 'src/font'  # 字体资源根路径
+    courierNewBoldFontPath = fontBasePath + '/courbd.ttf'  # courier new 粗体

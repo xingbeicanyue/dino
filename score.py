@@ -14,7 +14,7 @@ class Score:
         self._game = game
         self._curScore = 0  # 当前分数
         self._highestScore = 0  # 历史最高分
-        self._font = pygame.font.Font('src/font/courbd.ttf', 36)  # 显示分数的字体
+        self._font = pygame.font.Font(Settings.courierNewBoldFontPath, 36)  # 显示分数的字体
 
     @property
     def curScore(self) -> float:

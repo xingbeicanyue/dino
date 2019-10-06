@@ -12,12 +12,12 @@ class StartScene:
 
     def __init__(self):
         """ 初始化 """
-        self._coverImages = utils.loadImages('src/image/coverImage.png', 1, 2)
-        self._textImage = utils.loadImage('src/image/coverText.png')
+        self._coverImages = utils.loadImages(Settings.coverImagePath, 1, 2)
+        self._textImage = utils.loadImage(Settings.coverTextPath)
 
     def draw(self, screen):
         """ 绘制 """
-        screen.fill((255, 255, 255))
+        screen.fill(utils.Color.white)
         totalWidth = self._textImage.get_width()
         totalHeight = self._coverImages[0].get_height() * 2 + self._textImage.get_height()
         left = round((Settings.initialWindowSize[0] - totalWidth) / 2)
