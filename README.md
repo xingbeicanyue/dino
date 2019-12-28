@@ -15,7 +15,7 @@ Do ensure that you've installed python and dependencies below
 * numpy  >= 1.16.4
 * pygame  >= 1.9.6
 
-The application can be packaged by PyInstaller, and remember copy the 'src' directory to proper address.
+The application can be packaged by PyInstaller, and remember to copy the 'src' directory to proper address.
 
 
 
