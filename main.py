@@ -1,5 +1,4 @@
 import pygame
-import utils
 from settings import Settings
 from game import Game
 
@@ -9,7 +8,7 @@ pygame.init()
 game = Game(pygame.display.set_mode(Settings.initialWindowSize))
 
 pygame.display.set_caption(Settings.caption)
-pygame.display.set_icon(utils.loadImage(Settings.dinoJumpingPath, Settings.defaultColorKey, 0, False))
+pygame.display.set_icon(pygame.image.load(Settings.mainWindowIconPath))
 
 clock = pygame.time.Clock()
 while True:

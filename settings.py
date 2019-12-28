@@ -85,7 +85,9 @@ class Settings:
     maxDifficultyScore = 10000  # 达到最高难度的分数
 
     # 资源路径
+    iconBasePath = 'src/icon'  # 图标资源根路径
     imgBasePath = 'src/image'  # 图片资源根路径
+    mainWindowIconPath = iconBasePath + '/mainWindow.png'  # 窗口图标
     coverImagePath = imgBasePath + '/coverImage.png'  # 封面图
     coverTextPath = imgBasePath + '/coverText.png'  # 封面文字
     restartPath = imgBasePath + '/restart.png'  # 重新开始
